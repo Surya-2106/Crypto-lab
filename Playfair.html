@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Playfair Cipher Implementation</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+        .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
+        textarea, input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .grid-display { display: grid; grid-template-columns: repeat(5, 40px); gap: 5px; justify-content: center; margin: 20px 0; }
+        .cell { width: 40px; height: 40px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-weight: bold; background: #fff; }
+        button { padding: 10px 20px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: 0.2s; }
+        .btn-enc { background: #28a745; color: white; }
+        .btn-dec { background: #dc3545; color: white; }
+        .result-box { margin-top: 20px; padding: 15px; background: #f8f9fa; border-left: 5px solid #007bff; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Playfair Cipher</h2>
+    <input type="text" id="key" placeholder="Enter Secret Key (e.g., KEYWORD)" oninput="generateGrid()">
+    <div id="matrixDisplay" class="grid-display"></div>
+
+    <textarea id="inputText" placeholder="Enter message..."></textarea>
+
+    <div style="display: flex; gap: 10px;">
+        <button class="btn-enc" onclick="process('enc')">Encrypt</button>
+        <button class="btn-dec" onclick="process('dec')">Decrypt</button>
+    </div>
+
+    <div class="result-box">
+        <strong>Output:</strong>
+        <p id="outputText">-</p>
+    </div>
+</div>
+
+<script>
+    let matrix = [];
+
+    // 1. Generate 5x5 Key Matrix
+    function generateGrid() {
+        let key = document.getElementById('key').value.toUpperCase().replace(/J/g, 'I').replace(/[^A-Z]/g, '');
+        let alphabet = "ABCDEFGHIKLMNOPQRSTUVWXYZ"; // No 'J'
+        let combined = (key + alphabet).split('');
+        let uniqueChars = [...new Set(combined)];
+
+        matrix = [];
+        const display = document.getElementById('matrixDisplay');
+        display.innerHTML = '';
+
+        for (let i = 0; i < 5; i++) {
+            matrix[i] = uniqueChars.slice(i * 5, i * 5 + 5);
+            matrix[i].forEach(char => {
+                let cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.innerText = char;
+                display.appendChild(cell);
+            });
+        }
+    }
+
+    // 2. Preprocess text into Digraphs
+    function prepareText(text) {
+        text = text.toUpperCase().replace(/J/g, 'I').replace(/[^A-Z]/g, '');
+        let prepared = "";
+        for (let i = 0; i < text.length; i++) {
+            prepared += text[i];
+            if (i < text.length - 1 && text[i] === text[i+1] && (prepared.replace(/ /g, '').length % 2 !== 0)) {
+                prepared += 'X'; // Rule: Insert 'X' between identical letters in a pair
+            }
+        }
+        if (prepared.length % 2 !== 0) prepared += 'X'; // Rule: Pad with 'X' if odd length
+        return prepared;
+    }
+
+    // 3. Core Algorithm Logic
+    function findPos(char) {
+        for (let r = 0; r < 5; r++) {
+            for (let c = 0; c < 5; c++) {
+                if (matrix[r][c] === char) return {r, c};
+            }
+        }
+    }
+
+    function process(mode) {
+        if (matrix.length === 0) generateGrid();
+        let text = prepareText(document.getElementById('inputText').value);
+        let result = "";
+        let shift = (mode === 'enc') ? 1 : 4; // Use 4 for decryption to simulate -1 mod 5
+
+        for (let i = 0; i < text.length; i += 2) {
+            let a = findPos(text[i]);
+            let b = findPos(text[i+1]);
+
+            if (a.r === b.r) { // Same Row
+                result += matrix[a.r][(a.c + shift) % 5] + matrix[b.r][(b.c + shift) % 5];
+            } else if (a.c === b.c) { // Same Column
+                result += matrix[(a.r + shift) % 5][a.c] + matrix[(b.r + shift) % 5][b.c];
+            } else { // Rectangle Rule
+                result += matrix[a.r][b.c] + matrix[b.r][a.c];
+            }
+        }
+        document.getElementById('outputText').innerText = result;
+    }
+
+    // Initialize grid on load
+    generateGrid();
+</script>
+
+</body>
+</html>
