@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GCD & Primality Tester</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
+        .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        .section { margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        h2 { color: #2c3e50; text-align: center; }
+        input { width: calc(50% - 10px); padding: 10px; margin: 10px 5px; border: 1px solid #ddd; border-radius: 6px; }
+        .full-input { width: 100%; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-gcd { background: #3498db; color: white; }
+        .btn-prime { background: #27ae60; color: white; }
+        button:hover { opacity: 0.8; }
+        .result { margin-top: 15px; padding: 10px; border-radius: 4px; font-weight: bold; text-align: center; }
+        .gcd-res { background: #e3f2fd; color: #1565c0; }
+        .prime-res { background: #e8f5e9; color: #2e7d32; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Math Algorithms</h2>
+
+    <!-- Euclidean GCD Section -->
+    <div class="section">
+        <h3>Euclidean Algorithm (GCD)</h3>
+        <input type="number" id="gcdA" placeholder="Number A">
+        <input type="number" id="gcdB" placeholder="Number B">
+        <button class="btn-gcd" onclick="calculateGCD()">Find GCD</button>
+        <div id="gcdResult" class="result gcd-res" style="display:none;"></div>
+    </div>
+
+    <!-- Primality Test Section -->
+    <div class="section">
+        <h3>Primality Test</h3>
+        <input type="number" id="primeN" class="full-input" placeholder="Enter a number">
+        <button class="btn-prime" onclick="checkPrimality()">Test Primality</button>
+        <div id="primeResult" class="result prime-res" style="display:none;"></div>
+    </div>
+</div>
+
+<script>
+    // 1. Euclidean Algorithm Core Logic
+    // Principle: GCD(a, b) = GCD(b, a % b) until b is 0
+    function euclideanGCD(a, b) {
+        a = Math.abs(a);
+        b = Math.abs(b);
+        while (b) {
+            let temp = b;
+            b = a % b;
+            a = temp;
+        }
+        return a;
+    }
+
+    // 2. Primality Test Core Logic (Trial Division)
+    // Optimized: Checks up to the square root of n and skips even numbers
+    function isPrime(n) {
+        if (n <= 1) return false;
+        if (n <= 3) return true;
+        if (n % 2 === 0 || n % 3 === 0) return false;
+
+        // Loop from 5 up to sqrt(n), checking 6k ± 1
+        for (let i = 5; i * i <= n; i += 6) {
+            if (n % i === 0 || n % (i + 2) === 0) return false;
+        }
+        return true;
+    }
+
+    // UI Bridge Functions
+    function calculateGCD() {
+        const a = parseInt(document.getElementById('gcdA').value);
+        const b = parseInt(document.getElementById('gcdB').value);
+        const resDiv = document.getElementById('gcdResult');
+
+        if (isNaN(a) || isNaN(b)) return;
+        const result = euclideanGCD(a, b);
+        resDiv.innerText = `GCD(${a}, ${b}) = ${result}`;
+        resDiv.style.display = 'block';
+    }
+
+    function checkPrimality() {
+        const n = parseInt(document.getElementById('primeN').value);
+        const resDiv = document.getElementById('primeResult');
+
+        if (isNaN(n)) return;
+        const result = isPrime(n);
+        resDiv.innerText = `${n} is ${result ? 'a PRIME number' : 'a COMPOSITE number'}`;
+        resDiv.style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
